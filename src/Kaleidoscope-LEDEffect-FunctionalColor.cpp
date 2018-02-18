@@ -2,10 +2,6 @@
 
 namespace kaleidoscope {
 
-LEDFunctionalColor::LEDFunctionalColor(uint8_t fLayer) {
-  functionLayer = fLayer;
-}
-
 LEDFunctionalColor::LEDFunctionalColor(void) {
 }
 
@@ -13,6 +9,7 @@ LEDFunctionalColor::LEDFunctionalColor(void) {
 void LEDFunctionalColor::brightness(byte brightness) {
   color_escape = dim(color_escape, brightness);
   color_numbers = dim(color_numbers, brightness);
+  color_symbols = dim(color_symbols, brightness);
   color_letters = dim(color_letters, brightness);
   color_punctuation = dim(color_punctuation, brightness);
   color_brackets = dim(color_brackets, brightness);
@@ -43,12 +40,14 @@ void LEDFunctionalColor::brightness(byte brightness) {
   color_mousebuttons = dim(color_mousebuttons, brightness);
   color_mousewarp = dim(color_mousewarp, brightness);
   color_mousescroll = dim(color_mousescroll, brightness);
+  color_all = dim(color_all, brightness);
 }
 
 // Sets all the colors to the same thing
 void LEDFunctionalColor::all(cRGB color){
   color_escape = color;
   color_numbers = color;
+  color_symbols = color;
   color_letters = color;
   color_punctuation = color;
   color_brackets = color;
@@ -79,6 +78,7 @@ void LEDFunctionalColor::all(cRGB color){
   color_mousebuttons = color;
   color_mousewarp = color;
   color_mousescroll = color;
+  color_all = color;
 }
 
 // Color keys that aren't letters, numbers, or punctuation
@@ -116,6 +116,10 @@ void LEDFunctionalColor::escape(cRGB color) {
 
 void LEDFunctionalColor::numbers(cRGB color){
   color_numbers = color;
+}
+
+void LEDFunctionalColor::symbols(cRGB color){
+  color_symbols = color;
 }
 
 void LEDFunctionalColor::letters(cRGB color){
@@ -239,6 +243,7 @@ void LEDFunctionalColor::mousescroll(cRGB color){
 void LEDFunctionalColor::all(cRGB color, byte brightness){
   color_escape = dim(color, brightness);
   color_numbers = dim(color, brightness);
+  color_symbols = dim(color, brightness);
   color_letters = dim(color, brightness);
   color_punctuation = dim(color, brightness);
   color_brackets = dim(color, brightness);
@@ -269,6 +274,7 @@ void LEDFunctionalColor::all(cRGB color, byte brightness){
   color_mousebuttons = dim(color, brightness);
   color_mousewarp = dim(color, brightness);
   color_mousescroll = dim(color, brightness);
+  color_all = dim(color, brightness);
 }
 
 // Color keys that aren't letters, numbers, or punctuation
@@ -306,6 +312,10 @@ void LEDFunctionalColor::escape(cRGB color, byte brightness) {
 
 void LEDFunctionalColor::numbers(cRGB color, byte brightness){
   color_numbers = dim(color, brightness);
+}
+
+void LEDFunctionalColor::symbols(cRGB color, byte brightness){
+  color_symbols = dim(color, brightness);
 }
 
 void LEDFunctionalColor::letters(cRGB color, byte brightness){
@@ -433,17 +443,9 @@ void LEDFunctionalColor::setKeyLed(uint8_t r, uint8_t c) {
   if (k == Key_Escape) {::LEDControl.setCrgbAt(r, c, color_escape); return;}
   else if (k == Key_LEDEffectNext) {::LEDControl.setCrgbAt(r, c, color_led); return;}
   
-  // letters
-  else if (k == Key_1) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_2) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_3) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_4) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_5) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_6) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_7) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_8) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_9) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_0) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
+  // numbers
+  else if (k.keyCode == Key_0.keyCode || (k.keyCode >= Key_1.keyCode && k.keyCode <= Key_9.keyCode)) {::LEDControl.setCrgbAt(r, c, k.flags & SHIFT_HELD ? color_symbols : color_numbers); return;}
+  else if (k.keyCode == Key_Keypad0.keyCode || (k.keyCode >= Key_Keypad1.keyCode && k.keyCode <= Key_Keypad9.keyCode)) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
   else if (k == Key_Minus) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
   else if (k == Key_Equals) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
  
@@ -574,6 +576,8 @@ void LEDFunctionalColor::setKeyLed(uint8_t r, uint8_t c) {
   // mouse scroll
   else if (k == Key_mouseScrollUp) {::LEDControl.setCrgbAt(r, c, color_mousescroll); return;}
   else if (k == Key_mouseScrollDn) {::LEDControl.setCrgbAt(r, c, color_mousescroll); return;}
+  
+  else {::LEDControl.setCrgbAt(r, c, color_all); return;}
 
 
 }// end setKeyLed
@@ -599,13 +603,14 @@ void LEDFunctionalColor::onActivate(void) {
 	}
 }
 
+void LEDFunctionalColor::refreshAt(byte r, byte c) {
+  Key k = Layer.lookupOnActiveLayer(r, c);
+  setKeyLed(r, c);
+}
 
 void LEDFunctionalColor::update(void) {
   // first check which layer is active. Here we are assuming only fn or normal, but numlock is a thing too...
-  uint8_t current_layer = 0;
-  if ((::Layer_::isOn(functionLayer))) { //2 is FUNCTION in the default mapping
-    current_layer = 1;
-  }
+  uint8_t current_layer = ::Layer_::top();
 
   // Only set the colors again if the active layer changed
   if (current_layer != last_layer) {
@@ -616,22 +621,6 @@ void LEDFunctionalColor::update(void) {
         setKeyLed(r, c);
       }
     }
-
-    // set the fn keys (this assumes they haven't moved from the default location).
-    // Turn off when the function layer is active
-    if (current_layer == 0) {
-      // left fn
-      ::LEDControl.setCrgbAt(3, 6, color_fn); 
-      // right fn
-      ::LEDControl.setCrgbAt(3, 9, color_fn);
-    }
-    else {
-      // left fn
-      ::LEDControl.setCrgbAt(3, 6, CRGB(0, 0, 0)); 
-      // right fn
-      ::LEDControl.setCrgbAt(3, 9, CRGB(0, 0, 0));
-    }
-
   }
 
   last_layer = current_layer;

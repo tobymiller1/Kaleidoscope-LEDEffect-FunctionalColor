@@ -6,9 +6,7 @@
 namespace kaleidoscope {
 class LEDFunctionalColor : public LEDMode {
  public:
-  LEDFunctionalColor(uint8_t fLayer);
   LEDFunctionalColor(void);
-  uint8_t functionLayer = 2;
 
   // dims the brightness of all colors from 0-255
   void brightness(byte brightness);
@@ -19,6 +17,7 @@ class LEDFunctionalColor : public LEDMode {
   void allMouse(cRGB color);
   void escape(cRGB color);
   void numbers(cRGB color);
+  void symbols(cRGB color);
   void letters(cRGB color);
   void punctuation(cRGB color);
   void brackets(cRGB color);
@@ -56,6 +55,7 @@ class LEDFunctionalColor : public LEDMode {
   void allMouse(cRGB color, byte brightness);
   void escape(cRGB color, byte brightness);
   void numbers(cRGB color, byte brightness);
+  void symbols(cRGB color, byte brightness);
   void letters(cRGB color, byte brightness);
   void punctuation(cRGB color, byte brightness);
   void brackets(cRGB color, byte brightness);
@@ -97,6 +97,7 @@ class LEDFunctionalColor : public LEDMode {
   //define colors for certain groups of keys
   cRGB color_escape = dim(CRGB(255, 0, 0), 140);
   cRGB color_numbers = dim(CRGB(250, 235, 215), 220);
+  cRGB color_symbols = dim(CRGB(250, 235, 215), 220);
   cRGB color_letters = dim(CRGB(250, 235, 215), 100);
   cRGB color_punctuation = dim(CRGB(250, 235, 215), 150);
   cRGB color_brackets = dim(CRGB(250, 235, 215), 200);
@@ -131,12 +132,15 @@ class LEDFunctionalColor : public LEDMode {
   cRGB color_mousebuttons = dim(CRGB(128, 255, 255), 250);
   cRGB color_mousewarp = dim(CRGB(0, 255, 255), 150);
   cRGB color_mousescroll = dim(CRGB(0, 255, 255), 150);
+  
+  cRGB color_all = CRGB(0, 0, 0);
 
 
 
 
   protected:
   void onActivate(void) final;
+  void refreshAt(byte r, byte c) final;
   void update(void) final;
   cRGB dim(cRGB color, byte brightness);
   void setKeyLed(uint8_t r, uint8_t c);
