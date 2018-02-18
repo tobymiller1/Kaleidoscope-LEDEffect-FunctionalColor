@@ -41,6 +41,9 @@ void LEDFunctionalColor::brightness(byte brightness) {
   color_mousewarp = dim(color_mousewarp, brightness);
   color_mousescroll = dim(color_mousescroll, brightness);
   color_all = dim(color_all, brightness);
+  color_macros = dim(color_macros, brightness);
+  color_layer = dim(color_layer, brightness);
+  color_oneshot = dim(color_oneshot, brightness);
 }
 
 // Sets all the colors to the same thing
@@ -79,6 +82,9 @@ void LEDFunctionalColor::all(cRGB color){
   color_mousewarp = color;
   color_mousescroll = color;
   color_all = color;
+  color_macros = color;
+  color_layer = color;
+  color_oneshot = color;
 }
 
 // Color keys that aren't letters, numbers, or punctuation
@@ -101,6 +107,8 @@ void LEDFunctionalColor::allModifiers(cRGB color) {
   color_capslock = color;
   color_fkeys = color;
   color_fn = color;
+  color_layer = color;
+  color_oneshot = color;
 }
 
 void LEDFunctionalColor::allMouse(cRGB color){
@@ -148,6 +156,10 @@ void LEDFunctionalColor::tab(cRGB color){
 
 void LEDFunctionalColor::backspace(cRGB color){
   color_backspace = color;
+}
+
+void LEDFunctionalColor::space(cRGB color){
+  color_space = color;
 }
 
 void LEDFunctionalColor::del(cRGB color){
@@ -238,6 +250,18 @@ void LEDFunctionalColor::mousescroll(cRGB color){
   color_mousescroll = color;
 }
 
+void LEDFunctionalColor::macros(cRGB color){
+  color_macros = color;
+}
+
+void LEDFunctionalColor::layer(cRGB color){
+  color_layer = color;
+}
+
+void LEDFunctionalColor::oneshot(cRGB color){
+  color_oneshot = color;
+}
+
 
 // Sets all the colors to the same thing
 void LEDFunctionalColor::all(cRGB color, byte brightness){
@@ -274,6 +298,9 @@ void LEDFunctionalColor::all(cRGB color, byte brightness){
   color_mousebuttons = dim(color, brightness);
   color_mousewarp = dim(color, brightness);
   color_mousescroll = dim(color, brightness);
+  color_macros = dim(color, brightness);
+  color_layer = dim(color, brightness);
+  color_oneshot = dim(color, brightness);
   color_all = dim(color, brightness);
 }
 
@@ -297,6 +324,8 @@ void LEDFunctionalColor::allModifiers(cRGB color, byte brightness) {
   color_capslock = dim(color, brightness);
   color_fkeys = dim(color, brightness);
   color_fn = dim(color, brightness);
+  color_layer = dim(color, brightness);
+  color_oneshot = dim(color, brightness);
 }
 
 void LEDFunctionalColor::allMouse(cRGB color, byte brightness){
@@ -344,6 +373,10 @@ void LEDFunctionalColor::tab(cRGB color, byte brightness){
 
 void LEDFunctionalColor::backspace(cRGB color, byte brightness){
   color_backspace = dim(color, brightness);
+}
+
+void LEDFunctionalColor::space(cRGB color, byte brightness){
+  color_space = dim(color, brightness);
 }
 
 void LEDFunctionalColor::del(cRGB color, byte brightness){
@@ -434,20 +467,38 @@ void LEDFunctionalColor::mousescroll(cRGB color, byte brightness){
   color_mousescroll = dim(color, brightness);
 }
 
+void LEDFunctionalColor::macros(cRGB color, byte brightness){
+  color_macros = dim(color, brightness);
+}
+
+void LEDFunctionalColor::layer(cRGB color, byte brightness){
+  color_layer = dim(color, brightness);
+}
+
+void LEDFunctionalColor::oneshot(cRGB color, byte brightness){
+  color_oneshot = dim(color, brightness);
+}
+
 /*
  * setKeyLed accepts a Key position and sets it to the appropriate color
  * from the user's definitions a using a series of if/else statements.
  */
 void LEDFunctionalColor::setKeyLed(uint8_t r, uint8_t c) { 
   Key k = Layer.lookupOnActiveLayer(r, c);
+  uint8_t synthetic = k.flags & SYNTHETIC;
   if (k == Key_Escape) {::LEDControl.setCrgbAt(r, c, color_escape); return;}
   else if (k == Key_LEDEffectNext) {::LEDControl.setCrgbAt(r, c, color_led); return;}
   
+  else if (::OneShot.isOneShotKey(k)) {::LEDControl.setCrgbAt(r, c, color_oneshot); return;}
+  
+  else if (k.flags & IS_MACRO) {::LEDControl.setCrgbAt(r, c, color_macros); return;}
+  else if (k.flags & SWITCH_TO_KEYMAP) {::LEDControl.setCrgbAt(r, c, color_layer); return;}
+  
   // numbers
-  else if (k.keyCode == Key_0.keyCode || (k.keyCode >= Key_1.keyCode && k.keyCode <= Key_9.keyCode)) {::LEDControl.setCrgbAt(r, c, k.flags & SHIFT_HELD ? color_symbols : color_numbers); return;}
-  else if (k.keyCode == Key_Keypad0.keyCode || (k.keyCode >= Key_Keypad1.keyCode && k.keyCode <= Key_Keypad9.keyCode)) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_Minus) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
-  else if (k == Key_Equals) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
+  else if (!synthetic && (k.keyCode == Key_0.keyCode || (k.keyCode >= Key_1.keyCode && k.keyCode <= Key_9.keyCode))) {::LEDControl.setCrgbAt(r, c, k.flags & SHIFT_HELD ? color_symbols : color_numbers); return;}
+  else if (!synthetic && (k.keyCode == Key_Keypad0.keyCode || (k.keyCode >= Key_Keypad1.keyCode && k.keyCode <= Key_Keypad9.keyCode))) {::LEDControl.setCrgbAt(r, c, color_numbers); return;}
+  else if (k == Key_Minus) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
+  else if (k == Key_Equals) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
  
   // letters
   else if (k == Key_A) {::LEDControl.setCrgbAt(r, c, color_letters); return;}
@@ -499,6 +550,12 @@ void LEDFunctionalColor::setKeyLed(uint8_t r, uint8_t c) {
   else if (k == Key_Backspace) {::LEDControl.setCrgbAt(r, c, color_backspace); return;}
   else if (k == Key_Delete) {::LEDControl.setCrgbAt(r, c, color_delete); return;}
   else if (k == Key_Insert) {::LEDControl.setCrgbAt(r, c, color_insert); return;}
+  
+  else if (k == Key_KeypadSubtract) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
+  else if (k == Key_KeypadAdd) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
+  else if (k == Key_KeypadDivide) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
+  else if (k == Key_KeypadMultiply) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
+  else if (k == Key_KeypadDot) {::LEDControl.setCrgbAt(r, c, color_punctuation); return;}
 
   // nav keys
   else if (k == Key_Home) {::LEDControl.setCrgbAt(r, c, color_nav); return;}
@@ -572,7 +629,7 @@ void LEDFunctionalColor::setKeyLed(uint8_t r, uint8_t c) {
   else if (k == Key_mouseWarpNW) {::LEDControl.setCrgbAt(r, c, color_mousewarp); return;}
   else if (k == Key_mouseWarpSW) {::LEDControl.setCrgbAt(r, c, color_mousewarp); return;}
   else if (k == Key_mouseWarpNE) {::LEDControl.setCrgbAt(r, c, color_mousewarp); return;}
-  else if (k == Key_mouseWarpSW) {::LEDControl.setCrgbAt(r, c, color_mousewarp); return;}
+  else if (k == Key_mouseWarpSE) {::LEDControl.setCrgbAt(r, c, color_mousewarp); return;}
   // mouse scroll
   else if (k == Key_mouseScrollUp) {::LEDControl.setCrgbAt(r, c, color_mousescroll); return;}
   else if (k == Key_mouseScrollDn) {::LEDControl.setCrgbAt(r, c, color_mousescroll); return;}

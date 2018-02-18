@@ -2,6 +2,9 @@
 
 #include "Kaleidoscope-LEDControl.h"
 #include "Kaleidoscope-MouseKeys.h"
+#include "Kaleidoscope-Macros.h"
+#include "Kaleidoscope-OneShot.h"
+#include "Kaleidoscope.h"
 
 namespace kaleidoscope {
 class LEDFunctionalColor : public LEDMode {
@@ -25,6 +28,7 @@ class LEDFunctionalColor : public LEDMode {
   void pipe(cRGB color);
   void tab(cRGB color);
   void backspace(cRGB color);
+  void space(cRGB color);
   void del(cRGB color);
   void enter(cRGB color);
   void arrows(cRGB color);
@@ -47,6 +51,9 @@ class LEDFunctionalColor : public LEDMode {
   void mousebuttons(cRGB color);
   void mousewarp(cRGB color);
   void mousescroll(cRGB color);
+  void macros(cRGB color);
+  void layer(cRGB color);
+  void oneshot(cRGB color);
 
 
   // functions to set colors with brightness
@@ -63,6 +70,7 @@ class LEDFunctionalColor : public LEDMode {
   void pipe(cRGB color, byte brightness);
   void tab(cRGB color, byte brightness);
   void backspace(cRGB color, byte brightness);
+  void space(cRGB color, byte brightness);
   void del(cRGB color, byte brightness);
   void enter(cRGB color, byte brightness);
   void arrows(cRGB color, byte brightness);
@@ -85,6 +93,9 @@ class LEDFunctionalColor : public LEDMode {
   void mousebuttons(cRGB color, byte brightness);
   void mousewarp(cRGB color, byte brightness);
   void mousescroll(cRGB color, byte brightness);
+  void macros(cRGB color, byte brightness);
+  void layer(cRGB color, byte brightness);
+  void oneshot(cRGB color, byte brightness);
 
 
   private:
@@ -132,6 +143,9 @@ class LEDFunctionalColor : public LEDMode {
   cRGB color_mousebuttons = dim(CRGB(128, 255, 255), 250);
   cRGB color_mousewarp = dim(CRGB(0, 255, 255), 150);
   cRGB color_mousescroll = dim(CRGB(0, 255, 255), 150);
+  cRGB color_macros = dim(CRGB(0, 255, 0), 255);
+  cRGB color_layer = dim(CRGB(0, 255, 0), 255);
+  cRGB color_oneshot = dim(CRGB(0, 255, 0), 255);
   
   cRGB color_all = CRGB(0, 0, 0);
 
